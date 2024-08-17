@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Voice AI Assistant</h1>
+    <form id="commandForm">
+        <label for="command">Enter a command:</label>
+        <input type="text" id="command" name="command" required>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        const form = document.getElementById('commandForm');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            fetch('/command', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerText = data.response;
+            });
+        });
+    </script>
+</body>
+</html>
