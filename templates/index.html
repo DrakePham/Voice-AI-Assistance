@@ -8,28 +8,60 @@
 </head>
 <body>
     <h1>Voice AI Assistant</h1>
-    <form id="commandForm">
-        <label for="command">Enter a command:</label>
-        <input type="text" id="command" name="command" required>
-        <button type="submit">Submit</button>
-    </form>
+    
+    <button id="start-btn">Speak a command</button>
+    <p id="spoken-command">Your command will appear here...</p>
+    
     <div id="response"></div>
 
     <script>
-        const form = document.getElementById('commandForm');
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
+        // Check for browser support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-            const formData = new FormData(form);
+        const startBtn = document.getElementById('start-btn');
+        const spokenCommand = document.getElementById('spoken-command');
+        const responseDiv = document.getElementById('response');
+
+        startBtn.addEventListener('click', () => {
+            recognition.start();
+        });
+
+        recognition.addEventListener('result', (event) => {
+            const command = event.results[0][0].transcript;
+            spokenCommand.textContent = `You said: ${command}`;
+            
+            // Send the command to the server
             fetch('/command', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `command=${command}`
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('response').innerText = data.response;
+                responseDiv.textContent = data.response;
+                speakResponse(data.response);
             });
         });
+
+        recognition.addEventListener('speechend', () => {
+            recognition.stop();
+        });
+
+        recognition.addEventListener('error', (event) => {
+            spokenCommand.textContent = `Error occurred in recognition: ${event.error}`;
+        });
+
+        function speakResponse(responseText) {
+            const synth = window.speechSynthesis;
+            const utterThis = new SpeechSynthesisUtterance(responseText);
+            synth.speak(utterThis);
+        }
     </script>
 </body>
 </html>
