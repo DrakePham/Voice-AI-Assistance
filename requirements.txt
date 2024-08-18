@@ -1,0 +1,6 @@
+# Pythoy==3.9.6
+Flask==3.0.3
+Werkzeug==3.0.3
+gTTS==2.5.3
+PyAudio==0.2.14
+SpeechRecognition==3.10.4

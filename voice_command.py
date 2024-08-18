@@ -4,11 +4,17 @@ import os
 
 recognizer = sr.Recognizer()
 
+# Define command stages
 commands = {
-    "hello": "Hello! How can I help you today?",
-    "what is your name": "I am your voice assistant.",
-    "exit": "Goodbye!"
+    "set reminder": {"response": "Sure, for what time?", "next": "reminder_time"},
+    "reminder_time": {"response": "Reminder set for {time}.", "final": True},
+    "what is your name": {"response": "I am your voice assistant."},
+    "hello": {"response": "Hello! How can I help you today?"},
+    "exit": {"response": "Goodbye!", "final": True}
 }
+
+# Store state
+current_state = None
 
 def listen_command():
     with sr.Microphone() as source:
@@ -29,18 +35,47 @@ def listen_command():
             return ""
 
 def respond_to_command(command):
-    if command in commands:
-        response = commands[command]
-        print(response)
-        
-        tts = gTTS(response, lang='en')
-        tts.save("response.mp3")
-        
-        os.system("afplay response.mp3")  # On macOS
-        # os.system("start response.mp3")  # On Windows
-        
-        if command == "exit":
-            return False
+    global current_state
+
+    if current_state and command in commands[current_state]:
+        response_data = commands[current_state]
+        if "{time}" in response_data["response"]:
+            response_text = response_data["response"].format(time=command)
+        else:
+            response_text = response_data["response"]
+        print(response_text)
+        speak_response(response_text)
+        if "final" in response_data and response_data["final"]:
+            current_state = None
+    elif command in commands:
+        response_data = commands[command]
+        response_text = response_data["response"]
+        print(response_text)
+        speak_response(response_text)
+        if "next" in response_data:
+            current_state = response_data["next"]
+        elif "final" in response_data and response_data["final"]:
+            current_state = None
     else:
         print("Command not recognized.")
-    return True
+        speak_response("Sorry, I did not understand that.")
+
+def speak_response(response_text):
+    tts = gTTS(response_text, lang='en')
+    tts.save("response.mp3")
+    os.system("ffplay -nodisp -autoexit response.mp3")
+    # os.system("afplay response.mp3")  # On macOS
+    # os.system("start response.mp3")  # On Windows
+
+def main():
+    running = True
+    while running:
+        command = listen_command()
+        if command:
+            running = respond_to_command(command)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nProgram interrupted by user. Exiting...")

@@ -39,9 +39,8 @@ def respond_to_command(command):
         tts = gTTS(response, lang='en')
         tts.save("response.mp3")
         
-        # Play the response audio (use 'afplay' for macOS, 'start' for Windows)
-        os.system("afplay response.mp3")  # On macOS
-        # os.system("start response.mp3")  # On Windows
+        # Ensure only ffplay is used
+        os.system("ffplay -nodisp -autoexit response.mp3")  # On Linux/Windows with ffplay
         
         if command == "exit":
             return False
