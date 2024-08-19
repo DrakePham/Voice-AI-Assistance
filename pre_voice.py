@@ -40,7 +40,8 @@ def respond_to_command(command):
         tts.save("response.mp3")
         
         # Ensure only ffplay is used
-        os.system("ffplay -nodisp -autoexit response.mp3")  # On Linux/Windows with ffplay
+        # os.system("ffplay -nodisp -autoexit response.mp3")  # On Linux/Windows with ffplay
+        os.system("afplay response.mp3")  # On macOS
         
         if command == "exit":
             return False
